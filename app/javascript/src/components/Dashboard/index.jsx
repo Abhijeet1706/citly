@@ -4,8 +4,8 @@ import Container from "components/Container";
 import ListLinks from "components/Links/ListLinks";
 import PageLoader from "components/PageLoader";
 import linksApi from "apis/links";
-import { logger } from "common/logger";
-import CreateTask from "components/Links/CreateLink";
+// import { logger } from "common/logger";
+import CreateLink from "components/Links/CreateLink";
 
 const Dashboard = () => {
   const [links, setLinks] = useState([]);
@@ -17,7 +17,7 @@ const Dashboard = () => {
     event.preventDefault();
     setLoading(true);
     try {
-      await linksApi.create({ link: { original_url: link } });
+      await linksApi.create({ link: { original: link } });
       fetchLinks();
       setLoading(false);
     } catch (error) {
@@ -38,7 +38,7 @@ const Dashboard = () => {
   const handleClicked = async slug => {
     try {
       const responds = await linksApi.show(slug);
-      window.open(responds.data.link.original_url);
+      window.open(responds.data.link.original);
       fetchLinks();
     } catch (error) {
       logger.error(error);
@@ -48,12 +48,14 @@ const Dashboard = () => {
   const fetchLinks = async () => {
     try {
       const response = await linksApi.list();
-      setLinks(response.data.links);
+      setLinks(response.data.link);
       setLink("");
       setPageLoading(false);
     } catch (error) {
       logger.error(error);
       setPageLoading(false);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -71,7 +73,7 @@ const Dashboard = () => {
 
   return (
     <Container>
-      <CreateTask
+      <CreateLink
         handleSubmit={handleSubmit}
         setLink={setLink}
         link={link}

@@ -1,33 +1,27 @@
 class Link < ApplicationRecord
-    require 'csv'
-  
-    enum status: { 
-      unpinned: 0, 
-      pinned: 1 
-    }
+  require "csv"
 
-  validates :link, 
-            presence: true,  
-            format: { with: URI.regexp }
-  validates :shortened, 
+  validates :original,
+            presence: true, 
+            uniqueness: true, 
+            format: URI::regexp(%w[http https]), 
+            length: { minimum: 7 }
+  validates :shortened,
             presence: true,
-            length: { is: 7 }
-  
-  private
+            uniqueness: true,
+            format: URI::regexp(%w[http https])
+  validates :pinned, 
+            inclusion: [true, false]
+  default_scope { order(pinned: :desc) }
 
   def self.to_csv
-    attributes = %w{link shortened clicks}
+    attributes = %w{original shortened clicks pinned}
+
     CSV.generate(headers: true) do |csv|
       csv << attributes
       all.each do |link|
-        csv << attributes.map{ |attr| link.send(attr) }
+        csv << attributes.map { |attr| link.send(attr) }
       end
     end
-  end
-
-  def self.organize
-    pinned = self.pinned.order('updated_at DESC')
-    unpinned = self.unpinned.order('updated_at DESC')
-    pinned + unpinned
   end
 end

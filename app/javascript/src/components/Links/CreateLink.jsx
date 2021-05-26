@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import LinkForm from "components/Links/Form/LinkForm";
-import { logger } from "common/logger";
+// import { logger } from "common/logger";
 import Button from "components/Button";
 
 const CreateLink = ({ setLink, handleSubmit, loading, link }) => {

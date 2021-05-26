@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import linksApi from "apis/links";
-import { logger } from "common/logger";
+// import { logger } from "common/logger";
 import PageLoader from "components/PageLoader";
 
 const Redirect = ({ history, match }) => {
@@ -11,7 +11,7 @@ const Redirect = ({ history, match }) => {
   const handleRedirect = async slug => {
     try {
       const responds = await linksApi.show(slug);
-      const originalUrl = responds.data.link.original_url;
+      const originalUrl = responds.data.link.original;
       setUrl(originalUrl);
       if (!originalUrl) setNoMatch(true);
     } catch (error) {

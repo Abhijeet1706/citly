@@ -7,7 +7,7 @@ class HomeController < ApplicationController
 
   def show
     if @link.present?
-      @link.increment!(:clicks)
+      @link.increment!(:clicked)
       redirect_to @link.link
     else
       render

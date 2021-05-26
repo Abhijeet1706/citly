@@ -23,12 +23,12 @@ const TableRow = ({ data, handlePinned, handleClicked }) => {
             leading-5 text-bb-gray max-w-xs"
           >
             <a
-              href={rowData.original_url}
+              href={rowData.original}
               target="_blank"
               className="hover:underline cursor-pointer"
               rel="noreferrer"
             >
-              {rowData.original_url}
+              {rowData.original}
             </a>
           </td>
           <td
@@ -41,7 +41,7 @@ const TableRow = ({ data, handlePinned, handleClicked }) => {
               className="hover:underline cursor-pointer"
               rel="noreferrer"
             >
-              {rowData.shortened_url}
+              {rowData.shortened}
             </a>
           </td>
           <td

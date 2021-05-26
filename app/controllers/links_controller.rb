@@ -1,63 +1,93 @@
 class LinksController < ApplicationController
+  before_action :generate_slug,
+                :shortened_url,
+                :validate_url,
+                :check_uniqueness_of_link,
+                only: :create
   before_action :load_link, only: :update
-  before_action :check_link_presence, only: :create 
-  
+  before_action :load_link_by_slug, :update_click, only: :show
+  before_action :load_links, only: :index
+
   def index
-    links = Link.all
-    respond_to do |format|
-      format.html {render status: :ok, json:  links.organize()}
-      format.csv { send_data links.to_csv, filename: "links-#{Date.today}.csv" }
-    end   
+    render status: :ok, json: { links: @links }
   end
 
   def create
-    hash = generate_hash(link_params[:link])
-    link = Link.new(link_params.merge(shortened: hash))
-    if link.save
-      render status: :ok, json: {notice: "Link shortened"}
+    @link = Link.new(link_params)
+    if @link.save
+      render status: :ok, json: {
+        notice: t('successfully_created')
+      }
     else
-      render status: :unprocessable_entity,
-             json: { error: link.errors.full_messages.to_sentence }
+      errors = @link.errors.full_messages
+      render status: :unprocessable_entity, json: { errors: errors  }
     end
+  end
+
+  def show
+    render status: :ok, json: { link: @link }
   end
 
   def update
-    if @link.update(link_params)
-      render status: :ok, json: {}
+    if @link.update_attribute(:is_pinned, !@link.is_pinned)
+      render status: :ok, json: {
+        message: t('successfully_updated')
+      }
     else
-      render status: :unprocessable_entity,
-             json: { error: @link.errors.full_messages.to_sentence }
+      errors = @link.errors.full_messages
+      render status: :unprocessable_entity, json: { errors: errors }
     end
   end
 
-  private 
+  private
 
-  def link_params    
-    params.require(:link).permit(:link, :status )
+  def link_params
+    params.require(:link).permit(:original_url)
+      .merge(slug: @slug, shortened_url: @shortened_url)
   end
 
   def load_link
     @link = Link.find(params[:id])
-    rescue ActiveRecord::RecordNotFound => e
-      render json: { error: e }, status: :not_found
+    rescue ActiveRecord::RecordNotFound => errors
+      render json: {errors: errors}
   end
 
-  def generate_hash(string)
-    index = 0
-    while index <= 58 do
-      hash = (Digest::SHA256.hexdigest string)[index,6]
-      return hash unless Link.find_by(shortened: hash)
-      index += 7 
-    end 
-    render status: :unprocessable_entity,
-             json: { error: "Couldn't Shortern the Link"}
+  def load_link_by_slug
+    @link = Link.find_by(slug: params[:slug])
+    render json: {errors: t('link_not_found_error')} unless @link
   end
 
-  def check_link_presence
-    link = link_params[:link]
-    if Link.find_by(link: link)
-      render status: :unprocessable_entity,
-             json: { error: "Link already present"}
+  def update_click
+    unless @link.update_attribute(:clicked, @link.clicked + 1)
+      errors = @link.errors.full_messages
+      render status: :unprocessable_entity, json: { errors: errors }
+    end
+  end
+
+  def generate_slug
+    @slug = SecureRandom.uuid[0..5]
+    link = Link.find_by(slug: @slug)
+    generate_slug() if link
+  end
+
+  def shortened_url
+    @shortened_url = "#{request.base_url}/#{@slug}"
+  end
+
+  def validate_url
+    unless (link_params[:original_url] =~ /^(http|https)/)
+      render status: :unprocessable_entity, json: {
+        errors: t('link_format_error')
+      }
+    end
+  end
+
+  def check_uniqueness_of_link
+    link = Link.find_by(original_url: link_params[:original_url])
+    if link
+      render status: :unprocessable_entity, json: {
+        info: t('link_already_exist')
+      }
     end
   end
 end
