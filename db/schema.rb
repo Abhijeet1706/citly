@@ -11,14 +11,5 @@
 # It's strongly recommended that you check this file into your version control system.
 
 ActiveRecord::Schema.define(version: 2021_05_23_155235) do
-
-  create_table "links", force: :cascade do |t|
-    t.text "original", null: false
-    t.text "shortened", null: false
-    t.integer "clicked", default: 0
-    t.integer "status", default: 0
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
-  end
-
+  
 end
